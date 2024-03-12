@@ -7,26 +7,45 @@ from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+class User(Base):
+    __tablename__ = 'users'
+
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    username = Column(String, unique=True)
+    email = Column(String, unique=True)
+    password = Column(String)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+    favorites = relationship("Favorite", back_populates="user")
+
+class Character(Base):
+    __tablename__ = 'characters'
+
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    name = Column(String)
+    species = Column(String)
+    gender = Column(String)
+    homeworld_id = Column(Integer, ForeignKey('planets.id'))
 
-    def to_dict(self):
-        return {}
+    homeworld = relationship("Planet", back_populates="residents")
 
-## Draw from SQLAlchemy base
-render_er(Base, 'diagram.png')
+class Planet(Base):
+    __tablename__ = 'planets'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    climate = Column(String)
+    terrain = Column(String)
+
+    residents = relationship("Character", back_populates="homeworld")
+
+class Favorite(Base):
+    __tablename__ = 'favorites'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    character_id = Column(Integer, ForeignKey('characters.id'))
+    planet_id = Column(Integer, ForeignKey('planets.id'))
+
+    user = relationship("User", back_populates="favorites")
+    character = relationship("Character")
+    planet = relationship("Planet")
